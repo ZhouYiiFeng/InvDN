@@ -5,6 +5,7 @@ import lmdb
 import torch
 import torch.utils.data as data
 import data.util as util
+from skimage import img_as_float32 as img_as_float
 
 
 class LQGTRNDataset(data.Dataset):
@@ -22,16 +23,17 @@ class LQGTRNDataset(data.Dataset):
         self.sizes_LQ, self.sizes_GT, self.sizes_Noisy = None, None, None
         self.LQ_env, self.GT_env, self.Noisy_env = None, None, None  # environment for lmdb
 
-        self.paths_GT, self.sizes_GT = util.get_image_paths(self.data_type, opt['dataroot_GT'])
-        self.paths_Noisy, self.sizes_Noisy = util.get_image_paths(self.data_type, opt['dataroot_Noisy'])
+        # self.paths_GT, self.sizes_GT = util.get_image_paths(self.data_type, opt['dataroot_GT'])
+        # self.paths_Noisy, self.sizes_Noisy = util.get_image_paths(self.data_type, opt['dataroot_Noisy'])
+        self.h5file_sidd, self.sizes_h5file, self.keys = util.get_image_h5(self.data_type, opt['dataroot_h5'])
         self.paths_LQ, self.sizes_LQ = util.get_image_paths(self.data_type, opt['dataroot_LQ'])
-        assert self.paths_GT, 'Error: GT path is empty.'
-        assert self.paths_Noisy, 'Error: Noisy path is empty.'
-        if self.paths_LQ and self.paths_GT:
+        assert self.h5file_sidd, 'Error: H5 path is empty.'
+        # assert self.paths_Noisy, 'Error: Noisy path is empty.'
+        if self.paths_LQ and self.sizes_h5file:
             assert len(self.paths_LQ) == len(
-                self.paths_GT
+                self.sizes_h5file
             ), 'GT and LQ datasets have different number of images - {}, {}.'.format(
-                len(self.paths_LQ), len(self.paths_GT))
+                len(self.paths_LQ), len(self.sizes_h5file))
         self.random_scale_list = [1]
 
     def _init_lmdb(self):
@@ -52,12 +54,20 @@ class LQGTRNDataset(data.Dataset):
         GT_size = self.opt['GT_size']
 
         # get GT image
-        GT_path = self.paths_GT[index]
-        if self.data_type == 'lmdb':
-            resolution = [int(s) for s in self.sizes_GT[index].split('_')]
-        else:
-            resolution = None
-        img_GT = util.read_img(self.GT_env, GT_path, resolution)
+        # GT_path = self.paths_GT[index]
+        # if self.data_type == 'lmdb':
+        #     resolution = [int(s) for s in self.sizes_GT[index].split('_')]
+        # else:
+        #     resolution = None
+        # img_GT = util.read_img(self.GT_env, GT_path, resolution)
+
+        imgs_sets = self.h5file_sidd[self.keys[index]]
+        H, W, C2 = imgs_sets.shape
+        C = int(C2 // 2)
+        img_GT = np.array(imgs_sets[:, :, :C])
+        img_Noisy = np.array(imgs_sets[:, :, C:])
+        img_GT = img_as_float(img_GT)
+        img_Noisy = img_as_float(img_Noisy)
 
         # modcrop in the validation / test phase
         if self.opt['phase'] != 'train':
@@ -67,12 +77,12 @@ class LQGTRNDataset(data.Dataset):
             img_GT = util.channel_convert(img_GT.shape[2], self.opt['color'], [img_GT])[0]
 
         # get Noisy image
-        Noisy_path = self.paths_Noisy[index]
+        # Noisy_path = self.paths_Noisy[index]
         if self.data_type == 'lmdb':
             resolution = [int(s) for s in self.sizes_Noisy[index].split('_')]
         else:
             resolution = None
-        img_Noisy = util.read_img(self.Noisy_env, Noisy_path, resolution)
+        # img_Noisy = util.read_img(self.Noisy_env, Noisy_path, resolution)
         # modcrop in the validation / test phase
         if self.opt['phase'] != 'train':
             img_Noisy = util.modcrop(img_Noisy, scale)
@@ -158,7 +168,7 @@ class LQGTRNDataset(data.Dataset):
 
         if LQ_path is None:
             LQ_path = GT_path
-        return {'LQ': img_LQ, 'Noisy':img_Noisy, 'GT': img_GT, 'LQ_path': LQ_path, 'GT_path': GT_path}
+        return {'LQ': img_LQ, 'Noisy':img_Noisy, 'GT': img_GT}
 
     def __len__(self):
-        return len(self.paths_GT)
+        return self.sizes_h5file

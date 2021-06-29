@@ -1,0 +1,420 @@
+21-06-29 20:22:42.231 - INFO:   name: InvDN_ResUnit_x4
+  use_tb_logger: True
+  model: InvDN
+  scale: 4
+  gpu_ids: [0]
+  datasets:[
+    train:[
+      name: SIDD
+      mode: LQGTRN
+      dataroot_h5: /youtu_action_data/denoise/sidd/SIDD_Medium_Srgb/Data/medium_imgs_train.hdf5
+      dataroot_GT: 
+      dataroot_Noisy: 
+      dataroot_LQ: None
+      use_shuffle: True
+      n_workers: 6
+      batch_size: 28
+      GT_size: 144
+      use_flip: True
+      use_rot: True
+      color: RGB
+      phase: train
+      scale: 4
+      data_type: hdf5
+    ]
+    val:[
+      name: SIDD_val
+      mode: LQGTRN
+      dataroot_h5: /youtu_action_data/denoise/sidd/small_imgs_test.hdf5
+      dataroot_GT: 
+      dataroot_Noisy: 
+      dataroot_LQ: None
+      phase: val
+      scale: 4
+      data_type: hdf5
+    ]
+  ]
+  network_G:[
+    which_model_G:[
+      subnet_type: Resnet
+    ]
+    in_nc: 3
+    out_nc: 3
+    block_num: [8, 8]
+    scale: 4
+    init: xavier
+  ]
+  path:[
+    pretrain_model_G: None
+    strict_load: True
+    resume_state: None
+    root: /apdcephfs/private_joefzhou/test/InvDN
+    experiments_root: /apdcephfs/private_joefzhou/test/InvDN/experiments/InvDN_ResUnit_x4
+    models: /apdcephfs/private_joefzhou/test/InvDN/experiments/InvDN_ResUnit_x4/models
+    training_state: /apdcephfs/private_joefzhou/test/InvDN/experiments/InvDN_ResUnit_x4/training_state
+    log: /apdcephfs/private_joefzhou/test/InvDN/experiments/InvDN_ResUnit_x4
+    val_images: /apdcephfs/private_joefzhou/test/InvDN/experiments/InvDN_ResUnit_x4/val_images
+  ]
+  train:[
+    lr_G: 0.0002
+    beta1: 0.9
+    beta2: 0.999
+    niter: 600000
+    warmup_iter: -1
+    lr_scheme: MultiStepLR
+    lr_steps: [100000, 200000, 300000, 400000, 500000]
+    lr_gamma: 0.5
+    pixel_criterion_forw: l2
+    pixel_criterion_back: l1
+    manual_seed: 10
+    val_freq: 1.0
+    lambda_fit_forw: 16.0
+    lambda_rec_back: 1
+    lambda_ce_forw: 1
+    weight_decay_G: 1e-08
+    gradient_clipping: 10
+  ]
+  logger:[
+    print_freq: 1
+    save_checkpoint_freq: 1.0
+  ]
+  is_train: True
+  dist: False
+
+21-06-29 20:22:46.074 - INFO: Random seed: 10
+21-06-29 20:22:46.862 - INFO: Dataset [LQGTRNDataset - SIDD] is created.
+21-06-29 20:22:46.863 - INFO: Number of train images: 30,608, iters: 1,094
+21-06-29 20:22:46.863 - INFO: Total epochs needed: 549 for iters 600,000
+21-06-29 20:22:46.886 - INFO: Dataset [LQGTRNDataset - SIDD_val] is created.
+21-06-29 20:22:46.886 - INFO: Number of val images in [SIDD_val]: 1280
+21-06-29 20:22:51.678 - INFO: Network G structure: DataParallel - InvNet, with parameters: 2,641,200
+21-06-29 20:22:51.679 - INFO: InvNet(
+  (operations): ModuleList(
+    (0): HaarDownsampling()
+    (1): InvBlockExp(
+      (F): ResBlock(
+        (conv1): Conv2d(9, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (relu1): LeakyReLU(negative_slope=0.2, inplace=True)
+        (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (conv3): Conv2d(73, 3, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      )
+      (G): ResBlock(
+        (conv1): Conv2d(3, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (relu1): LeakyReLU(negative_slope=0.2, inplace=True)
+        (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (conv3): Conv2d(67, 9, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      )
+      (H): ResBlock(
+        (conv1): Conv2d(3, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (relu1): LeakyReLU(negative_slope=0.2, inplace=True)
+        (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (conv3): Conv2d(67, 9, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      )
+    )
+    (2): InvBlockExp(
+      (F): ResBlock(
+        (conv1): Conv2d(9, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (relu1): LeakyReLU(negative_slope=0.2, inplace=True)
+        (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (conv3): Conv2d(73, 3, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      )
+      (G): ResBlock(
+        (conv1): Conv2d(3, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (relu1): LeakyReLU(negative_slope=0.2, inplace=True)
+        (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (conv3): Conv2d(67, 9, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      )
+      (H): ResBlock(
+        (conv1): Conv2d(3, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (relu1): LeakyReLU(negative_slope=0.2, inplace=True)
+        (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (conv3): Conv2d(67, 9, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      )
+    )
+    (3): InvBlockExp(
+      (F): ResBlock(
+        (conv1): Conv2d(9, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (relu1): LeakyReLU(negative_slope=0.2, inplace=True)
+        (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (conv3): Conv2d(73, 3, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      )
+      (G): ResBlock(
+        (conv1): Conv2d(3, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (relu1): LeakyReLU(negative_slope=0.2, inplace=True)
+        (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (conv3): Conv2d(67, 9, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      )
+      (H): ResBlock(
+        (conv1): Conv2d(3, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (relu1): LeakyReLU(negative_slope=0.2, inplace=True)
+        (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (conv3): Conv2d(67, 9, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      )
+    )
+    (4): InvBlockExp(
+      (F): ResBlock(
+        (conv1): Conv2d(9, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (relu1): LeakyReLU(negative_slope=0.2, inplace=True)
+        (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (conv3): Conv2d(73, 3, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      )
+      (G): ResBlock(
+        (conv1): Conv2d(3, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (relu1): LeakyReLU(negative_slope=0.2, inplace=True)
+        (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (conv3): Conv2d(67, 9, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      )
+      (H): ResBlock(
+        (conv1): Conv2d(3, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (relu1): LeakyReLU(negative_slope=0.2, inplace=True)
+        (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (conv3): Conv2d(67, 9, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      )
+    )
+    (5): InvBlockExp(
+      (F): ResBlock(
+        (conv1): Conv2d(9, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (relu1): LeakyReLU(negative_slope=0.2, inplace=True)
+        (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (conv3): Conv2d(73, 3, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      )
+      (G): ResBlock(
+        (conv1): Conv2d(3, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (relu1): LeakyReLU(negative_slope=0.2, inplace=True)
+        (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (conv3): Conv2d(67, 9, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      )
+      (H): ResBlock(
+        (conv1): Conv2d(3, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (relu1): LeakyReLU(negative_slope=0.2, inplace=True)
+        (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (conv3): Conv2d(67, 9, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      )
+    )
+    (6): InvBlockExp(
+      (F): ResBlock(
+        (conv1): Conv2d(9, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (relu1): LeakyReLU(negative_slope=0.2, inplace=True)
+        (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (conv3): Conv2d(73, 3, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      )
+      (G): ResBlock(
+        (conv1): Conv2d(3, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (relu1): LeakyReLU(negative_slope=0.2, inplace=True)
+        (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (conv3): Conv2d(67, 9, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      )
+      (H): ResBlock(
+        (conv1): Conv2d(3, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (relu1): LeakyReLU(negative_slope=0.2, inplace=True)
+        (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (conv3): Conv2d(67, 9, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      )
+    )
+    (7): InvBlockExp(
+      (F): ResBlock(
+        (conv1): Conv2d(9, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (relu1): LeakyReLU(negative_slope=0.2, inplace=True)
+        (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (conv3): Conv2d(73, 3, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      )
+      (G): ResBlock(
+        (conv1): Conv2d(3, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (relu1): LeakyReLU(negative_slope=0.2, inplace=True)
+        (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (conv3): Conv2d(67, 9, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      )
+      (H): ResBlock(
+        (conv1): Conv2d(3, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (relu1): LeakyReLU(negative_slope=0.2, inplace=True)
+        (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (conv3): Conv2d(67, 9, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      )
+    )
+    (8): InvBlockExp(
+      (F): ResBlock(
+        (conv1): Conv2d(9, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (relu1): LeakyReLU(negative_slope=0.2, inplace=True)
+        (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (conv3): Conv2d(73, 3, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      )
+      (G): ResBlock(
+        (conv1): Conv2d(3, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (relu1): LeakyReLU(negative_slope=0.2, inplace=True)
+        (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (conv3): Conv2d(67, 9, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      )
+      (H): ResBlock(
+        (conv1): Conv2d(3, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (relu1): LeakyReLU(negative_slope=0.2, inplace=True)
+        (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (conv3): Conv2d(67, 9, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      )
+    )
+    (9): HaarDownsampling()
+    (10): InvBlockExp(
+      (F): ResBlock(
+        (conv1): Conv2d(45, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (relu1): LeakyReLU(negative_slope=0.2, inplace=True)
+        (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (conv3): Conv2d(109, 3, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      )
+      (G): ResBlock(
+        (conv1): Conv2d(3, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (relu1): LeakyReLU(negative_slope=0.2, inplace=True)
+        (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (conv3): Conv2d(67, 45, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      )
+      (H): ResBlock(
+        (conv1): Conv2d(3, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (relu1): LeakyReLU(negative_slope=0.2, inplace=True)
+        (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (conv3): Conv2d(67, 45, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      )
+    )
+    (11): InvBlockExp(
+      (F): ResBlock(
+        (conv1): Conv2d(45, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (relu1): LeakyReLU(negative_slope=0.2, inplace=True)
+        (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (conv3): Conv2d(109, 3, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      )
+      (G): ResBlock(
+        (conv1): Conv2d(3, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (relu1): LeakyReLU(negative_slope=0.2, inplace=True)
+        (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (conv3): Conv2d(67, 45, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      )
+      (H): ResBlock(
+        (conv1): Conv2d(3, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (relu1): LeakyReLU(negative_slope=0.2, inplace=True)
+        (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (conv3): Conv2d(67, 45, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      )
+    )
+    (12): InvBlockExp(
+      (F): ResBlock(
+        (conv1): Conv2d(45, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (relu1): LeakyReLU(negative_slope=0.2, inplace=True)
+        (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (conv3): Conv2d(109, 3, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      )
+      (G): ResBlock(
+        (conv1): Conv2d(3, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (relu1): LeakyReLU(negative_slope=0.2, inplace=True)
+        (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (conv3): Conv2d(67, 45, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      )
+      (H): ResBlock(
+        (conv1): Conv2d(3, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (relu1): LeakyReLU(negative_slope=0.2, inplace=True)
+        (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (conv3): Conv2d(67, 45, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      )
+    )
+    (13): InvBlockExp(
+      (F): ResBlock(
+        (conv1): Conv2d(45, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (relu1): LeakyReLU(negative_slope=0.2, inplace=True)
+        (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (conv3): Conv2d(109, 3, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      )
+      (G): ResBlock(
+        (conv1): Conv2d(3, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (relu1): LeakyReLU(negative_slope=0.2, inplace=True)
+        (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (conv3): Conv2d(67, 45, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      )
+      (H): ResBlock(
+        (conv1): Conv2d(3, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (relu1): LeakyReLU(negative_slope=0.2, inplace=True)
+        (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (conv3): Conv2d(67, 45, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      )
+    )
+    (14): InvBlockExp(
+      (F): ResBlock(
+        (conv1): Conv2d(45, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (relu1): LeakyReLU(negative_slope=0.2, inplace=True)
+        (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (conv3): Conv2d(109, 3, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      )
+      (G): ResBlock(
+        (conv1): Conv2d(3, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (relu1): LeakyReLU(negative_slope=0.2, inplace=True)
+        (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (conv3): Conv2d(67, 45, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      )
+      (H): ResBlock(
+        (conv1): Conv2d(3, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (relu1): LeakyReLU(negative_slope=0.2, inplace=True)
+        (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (conv3): Conv2d(67, 45, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      )
+    )
+    (15): InvBlockExp(
+      (F): ResBlock(
+        (conv1): Conv2d(45, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (relu1): LeakyReLU(negative_slope=0.2, inplace=True)
+        (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (conv3): Conv2d(109, 3, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      )
+      (G): ResBlock(
+        (conv1): Conv2d(3, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (relu1): LeakyReLU(negative_slope=0.2, inplace=True)
+        (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (conv3): Conv2d(67, 45, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      )
+      (H): ResBlock(
+        (conv1): Conv2d(3, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (relu1): LeakyReLU(negative_slope=0.2, inplace=True)
+        (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (conv3): Conv2d(67, 45, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      )
+    )
+    (16): InvBlockExp(
+      (F): ResBlock(
+        (conv1): Conv2d(45, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (relu1): LeakyReLU(negative_slope=0.2, inplace=True)
+        (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (conv3): Conv2d(109, 3, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      )
+      (G): ResBlock(
+        (conv1): Conv2d(3, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (relu1): LeakyReLU(negative_slope=0.2, inplace=True)
+        (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (conv3): Conv2d(67, 45, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      )
+      (H): ResBlock(
+        (conv1): Conv2d(3, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (relu1): LeakyReLU(negative_slope=0.2, inplace=True)
+        (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (conv3): Conv2d(67, 45, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      )
+    )
+    (17): InvBlockExp(
+      (F): ResBlock(
+        (conv1): Conv2d(45, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (relu1): LeakyReLU(negative_slope=0.2, inplace=True)
+        (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (conv3): Conv2d(109, 3, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      )
+      (G): ResBlock(
+        (conv1): Conv2d(3, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (relu1): LeakyReLU(negative_slope=0.2, inplace=True)
+        (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (conv3): Conv2d(67, 45, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      )
+      (H): ResBlock(
+        (conv1): Conv2d(3, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (relu1): LeakyReLU(negative_slope=0.2, inplace=True)
+        (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (conv3): Conv2d(67, 45, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      )
+    )
+  )
+)
+21-06-29 20:22:51.694 - WARNING: Params [module.operations.0.haar_weights] will not optimize.
+21-06-29 20:22:51.703 - WARNING: Params [module.operations.9.haar_weights] will not optimize.
+21-06-29 20:22:51.716 - INFO: Model [InvDN_Model] is created.
+21-06-29 20:22:51.716 - INFO: Start training from epoch: 0, iter: 0

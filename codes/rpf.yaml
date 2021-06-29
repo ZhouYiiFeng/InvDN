@@ -1,0 +1,47 @@
+## 任务提交配置参数, 参考 https://git.code.oa.com/yt-rapidflow/rpf_jcli
+
+# 训练任务的名字, 对应机智平台上的任务名称, 同时对应 机智平台上的模型文件名字, 对于同样训练代码, 最好使用同样的名字
+# 名字不能有空格,非'^[A-Z|a-z|0-9|_|-|\.]{2,48}$'的特殊字符.
+name: invDNv000
+
+#任务跑的机器数目 和 每个机器的GPU个数
+worker_num: 1
+gpu_num_per_worker: 1
+
+#机智平台上的业务标示, 通过rpf-jcli query 的 free_gpu 查看业务当前空余资源
+jizhi_business: youtu_temp
+
+# 数据集， 从http://jizhi.oa.com/#/Dataset 获得
+dataset: youtu_action_data-rw
+
+#使用的镜像名字,参考 https://git.code.oa.com/yt-rapidflow/docker_images
+image_full_name: "mirrors.tencent.com/joef_docker/pt15-basic-lib-denoise"
+
+# 任务结束后是否释放资源，对于调试任务保留现场，设置为True
+release_ip: True
+
+# ------------
+# lightrun 启动命令配置 参考： https://git.code.oa.com/yt-rapidflow/lightrun
+## 日志存储目录, 对于微信集群 设置为 task_out
+log_dir: ./logs
+#log_level: INFO
+
+## 自定义环境变量
+envs:
+  - "NCCL_DEBUG=INFO"
+  - "NCCL_DEBUG_SUBSYS=INIT"
+
+## 启动初始化命令
+#setup:
+# - "nvidia-smi"
+# - "pip3 install tensorboardX"
+
+## command 执行方式  mpi, hvd, rpf_mpi, multi_node, multi_gpu
+template: multi_node
+
+## 训练执行命令
+command:
+  - "python3 -W ignore ./train.py -opt options/train/train_InvDN.yml"
+
+## 可选mpi配置参数
+#mpi_args: "-mca pmix_base_verbose 100"

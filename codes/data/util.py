@@ -4,6 +4,7 @@ import pickle
 import random
 import numpy as np
 import torch
+import h5py as h5
 import cv2
 
 ####################
@@ -54,6 +55,15 @@ def get_image_paths(data_type, dataroot):
             raise NotImplementedError('data_type [{:s}] is not recognized.'.format(data_type))
     return paths, sizes
 
+def get_image_h5(data_type, dataroot):
+    '''get image path list
+    support h5 files'''
+    data, sizes, keys = None, None, None
+    if data_type == 'hdf5':
+        data = h5.File(dataroot, 'r')
+        keys = list(data.keys())
+        sizes = len(keys)
+    return data, sizes, keys
 
 ###################### read images ######################
 def _read_img_lmdb(env, key, size):

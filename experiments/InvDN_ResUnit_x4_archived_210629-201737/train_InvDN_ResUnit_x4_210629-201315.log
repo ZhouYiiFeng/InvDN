@@ -1,0 +1,84 @@
+21-06-29 20:13:15.092 - INFO:   name: InvDN_ResUnit_x4
+  use_tb_logger: True
+  model: InvDN
+  scale: 4
+  gpu_ids: [0]
+  datasets:[
+    train:[
+      name: SIDD
+      mode: LQGTRN
+      dataroot_h5: /youtu_action_data/denoise/sidd/SIDD_Medium_Srgb/Data/medium_imgs_train.hdf5
+      dataroot_GT: 
+      dataroot_Noisy: 
+      dataroot_LQ: None
+      use_shuffle: True
+      n_workers: 6
+      batch_size: 28
+      GT_size: 144
+      use_flip: True
+      use_rot: True
+      color: RGB
+      phase: train
+      scale: 4
+      data_type: hdf5
+    ]
+    val:[
+      name: SIDD_val
+      mode: LQGTRN
+      dataroot_GT: 
+      dataroot_Noisy: 
+      dataroot_LQ: None
+      phase: val
+      scale: 4
+      data_type: img
+    ]
+  ]
+  network_G:[
+    which_model_G:[
+      subnet_type: Resnet
+    ]
+    in_nc: 3
+    out_nc: 3
+    block_num: [8, 8]
+    scale: 4
+    init: xavier
+  ]
+  path:[
+    pretrain_model_G: None
+    strict_load: True
+    resume_state: None
+    root: /apdcephfs/private_joefzhou/test/InvDN
+    experiments_root: /apdcephfs/private_joefzhou/test/InvDN/experiments/InvDN_ResUnit_x4
+    models: /apdcephfs/private_joefzhou/test/InvDN/experiments/InvDN_ResUnit_x4/models
+    training_state: /apdcephfs/private_joefzhou/test/InvDN/experiments/InvDN_ResUnit_x4/training_state
+    log: /apdcephfs/private_joefzhou/test/InvDN/experiments/InvDN_ResUnit_x4
+    val_images: /apdcephfs/private_joefzhou/test/InvDN/experiments/InvDN_ResUnit_x4/val_images
+  ]
+  train:[
+    lr_G: 0.0002
+    beta1: 0.9
+    beta2: 0.999
+    niter: 600000
+    warmup_iter: -1
+    lr_scheme: MultiStepLR
+    lr_steps: [100000, 200000, 300000, 400000, 500000]
+    lr_gamma: 0.5
+    pixel_criterion_forw: l2
+    pixel_criterion_back: l1
+    manual_seed: 10
+    val_freq: 1.0
+    lambda_fit_forw: 16.0
+    lambda_rec_back: 1
+    lambda_ce_forw: 1
+    weight_decay_G: 1e-08
+    gradient_clipping: 10
+  ]
+  logger:[
+    print_freq: 1
+    save_checkpoint_freq: 1.0
+  ]
+  is_train: True
+  dist: False
+
+21-06-29 20:13:18.926 - INFO: Random seed: 10
+21-06-29 20:13:52.675 - INFO: Dataset [LQGTRNDataset - SIDD] is created.

@@ -23,17 +23,30 @@ def parse(opt_path, is_train=True):
         dataset['phase'] = phase
         dataset['scale'] = scale
         is_lmdb = False
+        is_h5 = False
         if dataset.get('dataroot_GT', None) is not None:
             dataset['dataroot_GT'] = osp.expanduser(dataset['dataroot_GT'])
             if dataset['dataroot_GT'].endswith('lmdb'):
                 is_lmdb = True
+            elif dataset['dataroot_GT'].endswith('hdf5'):
+                is_h5 = True
         # if dataset.get('dataroot_GT_bg', None) is not None:
         #     dataset['dataroot_GT_bg'] = osp.expanduser(dataset['dataroot_GT_bg'])
         if dataset.get('dataroot_LQ', None) is not None:
             dataset['dataroot_LQ'] = osp.expanduser(dataset['dataroot_LQ'])
             if dataset['dataroot_LQ'].endswith('lmdb'):
                 is_lmdb = True
+            elif dataset['dataroot_LQ'].endswith('hdf5'):
+                is_h5 = True
+        if dataset.get('dataroot_h5', None) is not None:
+            dataset['dataroot_h5'] = osp.expanduser(dataset['dataroot_h5'])
+            if dataset['dataroot_h5'].endswith('lmdb'):
+                is_lmdb = True
+            elif dataset['dataroot_h5'].endswith('hdf5'):
+                is_h5 = True
         dataset['data_type'] = 'lmdb' if is_lmdb else 'img'
+        if is_h5:
+            dataset['data_type'] = 'hdf5'
         if dataset['mode'].endswith('mc'):  # for memcached
             dataset['data_type'] = 'mc'
             dataset['mode'] = dataset['mode'].replace('_mc', '')
@@ -44,9 +57,10 @@ def parse(opt_path, is_train=True):
             opt['path'][key] = osp.expanduser(path)
     opt['path']['root'] = osp.abspath(osp.join(__file__, osp.pardir, osp.pardir, osp.pardir))
     if is_train:
-        experiments_root = osp.join(opt['path']['root'], 'experiments', opt['name'])
+        # experiments_root = osp.join(opt['path']['root'], 'experiments', opt['name'])
+        experiments_root = './logs'
         opt['path']['experiments_root'] = experiments_root
-        opt['path']['models'] = osp.join(experiments_root, 'models')
+        opt['path']['models'] = "./ckpt"
         opt['path']['training_state'] = osp.join(experiments_root, 'training_state')
         opt['path']['log'] = experiments_root
         opt['path']['val_images'] = osp.join(experiments_root, 'val_images')

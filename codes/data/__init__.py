@@ -28,9 +28,9 @@ def create_dataloader(dataset, dataset_opt, opt=None, sampler=None):
 def create_dataset(dataset_opt):
     mode = dataset_opt['mode']
     if mode == 'LQGTRN':
-        from data.LQGTRN_dataset import LQGTRNDataset as D
+        from data.LQGTRN_dataset_ort import LQGTRNDataset as D
     elif mode == 'LQGTSN':
-        from data.LQGTSN_dataset import LQGTSNDataset as D
+        from data.LQGTRN_dataset_ort import LQGTSNDataset as D
     else:
         raise NotImplementedError('Dataset [{:s}] is not recognized.'.format(mode))
     dataset = D(dataset_opt)

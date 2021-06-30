@@ -5,7 +5,7 @@ name: InvDN_ResUnit_x4
 use_tb_logger: true
 model: InvDN
 scale: 4
-gpu_ids: [0]
+gpu_ids: [0,1]
 
 
 #### datasets
@@ -14,23 +14,25 @@ datasets:
   train:
     name: SIDD
     mode: LQGTRN
-    dataroot_GT: '' # path to training Clean images
-    dataroot_Noisy: '' # path to training Noisy images
+    dataroot_h5: ''
+    dataroot_GT: '/root/vimeo_triplet/lmdb/train/GT/medium_imgs_train_lmdb' # path to training Clean images
+    dataroot_Noisy: '/root/vimeo_triplet/lmdb/train/Noisy/medium_imgs_train_lmdb' # path to training Noisy images
     dataroot_LQ: ~ # path to training reference LR images, not necessary, if not provided, LR images will be generated in dataloader
 
     use_shuffle: true
     n_workers: 6  # per GPU
-    batch_size: 28
+    batch_size: 2
     GT_size: 144
     use_flip: true
     use_rot: true
     color: RGB
-
+#
   val:
     name: SIDD_val
     mode: LQGTRN
-    dataroot_GT: '' # path to validation Clean images
-    dataroot_Noisy: '' # path to validation Noisy images
+    dataroot_h5: ''
+    dataroot_GT: '/root/vimeo_triplet/lmdb/val/GT/medium_imgs_val_lmdb' # path to validation Clean images
+    dataroot_Noisy: '/root/vimeo_triplet/lmdb/val/Noisy/medium_imgs_val_lmdb' # path to validation Noisy images
     dataroot_LQ: ~ # path to validation reference LR images, not necessary, if not provided, LR images will be generated in dataloader
 
 
@@ -57,7 +59,7 @@ path:
 #### training settings: learning rate scheme, loss
 
 train:
-  lr_G: !!float 2e-4
+  lr_G: !!float 25e-5
   beta1: 0.9
   beta2: 0.999
   niter: 600000
@@ -72,7 +74,7 @@ train:
 
   manual_seed: 10
 
-  val_freq: !!float 1
+  val_freq: !!float 10
 
   lambda_fit_forw: 16.
   lambda_rec_back: 1
@@ -85,4 +87,4 @@ train:
 
 logger:
   print_freq: 1
-  save_checkpoint_freq: !!float 1
+  save_checkpoint_freq: !!float 1000

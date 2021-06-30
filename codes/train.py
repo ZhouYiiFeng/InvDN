@@ -13,6 +13,7 @@ import options.options as option
 from utils import util
 from data import create_dataloader, create_dataset
 from models import create_model
+from tqdm import tqdm
 
 
 def init_dist(backend='nccl', **kwargs):
@@ -60,8 +61,7 @@ def main():
     #### mkdir and loggers
     if rank <= 0:  # normal training (rank -1) OR distributed training (rank 0)
         if resume_state is None:
-            util.mkdir_and_rename(
-                opt['path']['experiments_root'])  # rename experiment folder if exists
+            # util.mkdir_and_rename(opt['path']['experiments_root'])  # rename experiment folder if exists
             util.mkdirs((path for key, path in opt['path'].items() if not key == 'experiments_root'
                          and 'pretrain_model' not in key and 'resume' not in key))
 
@@ -81,7 +81,7 @@ def main():
                 logger.info(
                     'You are using PyTorch {}. Tensorboard will use [tensorboardX]'.format(version))
                 from tensorboardX import SummaryWriter
-            tb_logger = SummaryWriter(log_dir='../tb_logger/' + opt['name'])
+            tb_logger = SummaryWriter(log_dir=opt['path']['log'])
     else:
         util.setup_logger('base', opt['path']['log'], 'train', level=logging.INFO, screen=True)
         logger = logging.getLogger('base')
@@ -178,11 +178,11 @@ def main():
             if current_step % opt['train']['val_freq'] == 0 and rank <= 0:
                 avg_psnr = 0.0
                 idx = 0
-                for val_data in val_loader:
+                for val_data in tqdm(val_loader):
                     idx += 1
-                    img_name = os.path.splitext(os.path.basename(val_data['LQ_path'][0]))[0]
-                    img_dir = os.path.join(opt['path']['val_images'], img_name)
-                    util.mkdir(img_dir)
+                    # img_name = os.path.splitext(os.path.basename(val_data['LQ_path'][0]))[0]
+                    # img_dir = os.path.join(opt['path']['val_images'], img_name)
+                    # util.mkdir(img_dir)
 
                     model.feed_data(val_data)
                     model.test()
@@ -190,28 +190,28 @@ def main():
                     visuals = model.get_current_visuals()
                     denoised_img = util.tensor2img(visuals['Denoised'])  # uint8
                     gt_img = util.tensor2img(visuals['GT'])  # uint8
-                    noisy_img = util.tensor2img(visuals['Noisy']) # uint8
-
-                    lr_img = util.tensor2img(visuals['LR'])
-                    gtl_img = util.tensor2img(visuals['LR_ref'])
+                    # noisy_img = util.tensor2img(visuals['Noisy']) # uint8
+                    #
+                    # lr_img = util.tensor2img(visuals['LR'])
+                    # gtl_img = util.tensor2img(visuals['LR_ref'])
 
                     # Save Denoised images
-                    save_img_path = os.path.join(img_dir,
-                                                 '{:s}_{:d}.png'.format(img_name, current_step))
-                    util.save_img(denoised_img, save_img_path)
+                    # save_img_path = os.path.join(img_dir,
+                    #                              '{:s}_{:d}.png'.format(img_name, current_step))
+                    # util.save_img(denoised_img, save_img_path)
 
                     # Save LR images
-                    save_img_path_L = os.path.join(img_dir, '{:s}_forwLR_{:d}.png'.format(img_name, current_step))
-                    util.save_img(lr_img, save_img_path_L)
+                    # save_img_path_L = os.path.join(img_dir, '{:s}_forwLR_{:d}.png'.format(img_name, current_step))
+                    # util.save_img(lr_img, save_img_path_L)
 
                     # Save ground truth
-                    if current_step == opt['train']['val_freq']:
-                        save_img_path_gt = os.path.join(img_dir, '{:s}_GT_{:d}.png'.format(img_name, current_step))
-                        util.save_img(gt_img, save_img_path_gt)
-                        save_img_path_noisy = os.path.join(img_dir, '{:s}_Noisy_{:d}.png'.format(img_name, current_step))
-                        util.save_img(noisy_img, save_img_path_noisy)
-                        save_img_path_gtl = os.path.join(img_dir, '{:s}_LR_ref_{:d}.png'.format(img_name, current_step))
-                        util.save_img(gtl_img, save_img_path_gtl)
+                    # if current_step == opt['train']['val_freq']:
+                    #     save_img_path_gt = os.path.join(img_dir, '{:s}_GT_{:d}.png'.format(img_name, current_step))
+                    #     util.save_img(gt_img, save_img_path_gt)
+                    #     save_img_path_noisy = os.path.join(img_dir, '{:s}_Noisy_{:d}.png'.format(img_name, current_step))
+                    #     util.save_img(noisy_img, save_img_path_noisy)
+                    #     save_img_path_gtl = os.path.join(img_dir, '{:s}_LR_ref_{:d}.png'.format(img_name, current_step))
+                    #     util.save_img(gtl_img, save_img_path_gtl)
 
                     # calculate PSNR
                     crop_size = opt['scale']

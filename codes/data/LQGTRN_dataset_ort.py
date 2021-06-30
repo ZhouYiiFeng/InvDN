@@ -34,6 +34,10 @@ class LQGTRNDataset(data.Dataset):
             ), 'GT and LQ datasets have different number of images - {}, {}.'.format(
                 len(self.paths_LQ), len(self.paths_GT))
         self.random_scale_list = [1]
+        if self.data_type == 'lmdb':
+            if (self.GT_env is None) or (self.LQ_env is None) or (self.Noisy_env is None):
+                self._init_lmdb()
+
 
     def _init_lmdb(self):
         # https://github.com/chainer/chainermn/issues/129
@@ -50,9 +54,6 @@ class LQGTRNDataset(data.Dataset):
                                 meminit=False)
 
     def __getitem__(self, index):
-        if self.data_type == 'lmdb':
-            if (self.GT_env is None) or (self.LQ_env is None) or (self.Noisy_env is None):
-                self._init_lmdb()
         GT_path, Noisy_path, LQ_path = None, None, None
         scale = self.opt['scale']
         GT_size = self.opt['GT_size']

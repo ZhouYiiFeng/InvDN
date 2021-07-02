@@ -105,8 +105,8 @@ class HaarDownsampling(nn.Module):
 
 class InvNet(nn.Module):
     def __init__(self, channel_in=3, channel_out=3,
-                 subnet_constructor=None, SNsplit_num=8,
-                 s2r_blk_num=8, affine=True, conv_lu=True):
+                 subnet_constructor=None, SNsplit_num=16,
+                 s2r_blk_num=16, affine=True, conv_lu=True):
         super(InvNet, self).__init__()
 
         operations = []
@@ -455,5 +455,11 @@ if __name__ == '__main__':
 
     model = define_G(opt)
     x = torch.rand(1, 3, 128, 128)
-    y1 = model(x)
-    print(y1.shape)
+    # y1 = model(x)
+    # print(y1.shape)
+
+    from thop import profile
+
+    flops, params = profile(model, inputs=(x,))
+    print(flops / (10 ** 9))
+    print(params / (10 ** 6))

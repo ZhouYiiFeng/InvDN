@@ -20,9 +20,9 @@ datasets:
     dataroot_LQ: ~ # path to training reference LR images, not necessary, if not provided, LR images will be generated in dataloader
 
     use_shuffle: true
-    n_workers: 6  # per GPU
+    n_workers: 16  # per GPU
     batch_size: 128
-    GT_size: 144
+    GT_size: 64
     use_flip: true
     use_rot: true
     color: RGB

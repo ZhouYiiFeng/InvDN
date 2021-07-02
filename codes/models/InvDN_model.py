@@ -83,10 +83,10 @@ class InvDN_Model(BaseModel):
         self.real_H = data['GT'].to(self.device)  # GT
         self.noisy_H = data['Noisy'].to(self.device)  # Noisy
 
-        # import torchvision
-        # torchvision.utils.save_image(self.noisy_H,"noisy_H.png")
-        # torchvision.utils.save_image(self.ref_L,"ref_L.png")
-        # torchvision.utils.save_image(self.real_H,"real_H.png")
+        import torchvision
+        torchvision.utils.save_image(self.noisy_H,"noisy_H.png")
+        torchvision.utils.save_image(self.ref_L,"ref_L.png")
+        torchvision.utils.save_image(self.real_H,"real_H.png")
 
     def feed_test_data(self, data):
         self.noisy_H = data.to(self.device)  # Noisy

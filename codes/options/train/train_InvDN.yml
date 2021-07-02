@@ -5,7 +5,7 @@ name: InvDN_ResUnit_x4
 use_tb_logger: true
 model: InvDN
 scale: 4
-gpu_ids: [0]
+gpu_ids: [0,1]
 
 
 #### datasets
@@ -14,9 +14,11 @@ datasets:
   train:
     name: SIDD
     mode: LQGTRN
-    dataroot_h5: '/youtu_action_data/denoise/sidd/SIDD_Medium_Srgb/Data/medium_imgs_train.hdf5'
-    dataroot_GT: '' # path to training Clean images
-    dataroot_Noisy: '' # path to training Noisy images
+    dataroot_h5: ''
+#    dataroot_GT: '/youtu_action_data/denoise/sidd/lmdb/train/GT/medium_imgs_train_lmdb' # path to training Clean images
+#    dataroot_Noisy: '/youtu_action_data/denoise/sidd/lmdb/train/Noisy/medium_imgs_train_lmdb' # path to training Noisy images
+    dataroot_GT: '/root/vimeo_triplet/lmdb/train/GT/medium_imgs_train_lmdb' # path to training Clean images
+    dataroot_Noisy: '/root/vimeo_triplet/lmdb/train/Noisy/medium_imgs_train_lmdb' # path to training Noisy images
     dataroot_LQ: ~ # path to training reference LR images, not necessary, if not provided, LR images will be generated in dataloader
 
     use_shuffle: true
@@ -30,9 +32,9 @@ datasets:
   val:
     name: SIDD_val
     mode: LQGTRN
-    dataroot_h5: '/youtu_action_data/denoise/sidd/small_imgs_test.hdf5'
-    dataroot_GT: '' # path to validation Clean images
-    dataroot_Noisy: '' # path to validation Noisy images
+    dataroot_h5: ''
+    dataroot_GT: '/root/vimeo_triplet/lmdb/val/GT/medium_imgs_val_lmdb' # path to validation Clean images
+    dataroot_Noisy: '/root/vimeo_triplet/lmdb/val/Noisy/medium_imgs_val_lmdb' # path to validation Noisy images
     dataroot_LQ: ~ # path to validation reference LR images, not necessary, if not provided, LR images will be generated in dataloader
 
 

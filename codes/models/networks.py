@@ -1,7 +1,7 @@
 import torch
 import logging
 import models.modules.discriminator_vgg_arch as SRGAN_arch
-from models.modules.Inv_arch import *
+from models.modules.ISP_InvDN import *
 from models.modules.Subnet_constructor import subnet
 import math
 logger = logging.getLogger('base')
@@ -21,8 +21,9 @@ def define_G(opt):
 
     down_num = int(math.log(opt_net['scale'], 2))
 
-    netG = InvNet(opt_net['in_nc'], opt_net['out_nc'], subnet(subnet_type, init), opt_net['block_num'], down_num)
-
+    # netG = InvNet(opt_net['in_nc'], opt_net['out_nc'], subnet(subnet_type, init), opt_net['block_num'], down_num)
+    netG = InvNet(channel_in=opt_net['in_nc'], channel_out=opt_net['out_nc'],
+                  subnet_constructor=subnet(subnet_type, init))
     return netG
 
 def define_subG(opt):

@@ -32,11 +32,11 @@ envs:
   - "NCCL_DEBUG_SUBSYS=INIT"
 
 ## 启动初始化命令
-setup:
-  - "mkdir ~/vimeo_triplet"
-  - "mount tmpfs ~/vimeo_triplet/ -t tmpfs -o size=200G"
-  - "cp -r /youtu_action_data/denoise/sidd/lmdb  /root/vimeo_triplet/"
-  - "cp -r /youtu_action_data/denoise/sidd/lmdb  /root/vimeo_triplet/"
+#setup:
+#  - "mkdir ~/vimeo_triplet"
+#  - "mount tmpfs ~/vimeo_triplet/ -t tmpfs -o size=200G"
+#  - "cp -r /youtu_action_data/denoise/sidd/lmdb  /root/vimeo_triplet/"
+#  - "cp -r /youtu_action_data/denoise/sidd/lmdb  /root/vimeo_triplet/"
 
 ## command 执行方式  mpi, hvd, rpf_mpi, multi_node, multi_gpu
 template: multi_node

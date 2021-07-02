@@ -106,7 +106,7 @@ class HaarDownsampling(nn.Module):
 class InvNet(nn.Module):
     def __init__(self, channel_in=3, channel_out=3,
                  subnet_constructor=None, SNsplit_num=8,
-                 s2r_blk_num=4, affine=True, conv_lu=True):
+                 s2r_blk_num=8, affine=True, conv_lu=True):
         super(InvNet, self).__init__()
 
         operations = []

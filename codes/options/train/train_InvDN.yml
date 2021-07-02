@@ -5,7 +5,7 @@ name: InvDN_ResUnit_x4
 use_tb_logger: true
 model: InvDN
 scale: 4
-gpu_ids: [0,1]
+gpu_ids: [0]
 
 
 #### datasets
@@ -21,7 +21,7 @@ datasets:
 
     use_shuffle: true
     n_workers: 6  # per GPU
-    batch_size: 1
+    batch_size: 128
     GT_size: 144
     use_flip: true
     use_rot: true
@@ -46,6 +46,7 @@ network_G:
   block_num: [8, 8]
   scale: 4
   init: xavier
+  s2r_blk_num: 8
 
 
 #### path

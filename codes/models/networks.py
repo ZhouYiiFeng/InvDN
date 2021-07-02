@@ -1,7 +1,7 @@
 import torch
 import logging
 import models.modules.discriminator_vgg_arch as SRGAN_arch
-from models.modules.Inv_arch import *
+from models.modules.n_arch import *
 from models.modules.Subnet_constructor import subnet
 import math
 logger = logging.getLogger('base')

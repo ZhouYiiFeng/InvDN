@@ -2,7 +2,7 @@
 
 # 训练任务的名字, 对应机智平台上的任务名称, 同时对应 机智平台上的模型文件名字, 对于同样训练代码, 最好使用同样的名字
 # 名字不能有空格,非'^[A-Z|a-z|0-9|_|-|\.]{2,48}$'的特殊字符.
-name: invDNv003_memory_lmdb
+name: invDNv004_hd5
 
 #任务跑的机器数目 和 每个机器的GPU个数
 worker_num: 1
@@ -17,8 +17,8 @@ dataset: youtu_action_data-rw
 #使用的镜像名字,参考 https://git.code.oa.com/yt-rapidflow/docker_images
 image_full_name: "mirrors.tencent.com/joef_docker/pt15-basic-lib-denoise"
 
-# 任务结束后是否释放资源，对于调试任务保留现场，设置为True
-release_ip: True
+# 任务结束后是否释放资源，对于调试任务保留现场
+release_ip: False
 
 # ------------
 # lightrun 启动命令配置 参考： https://git.code.oa.com/yt-rapidflow/lightrun
@@ -32,11 +32,11 @@ envs:
   - "NCCL_DEBUG_SUBSYS=INIT"
 
 ## 启动初始化命令
-setup:
-  - "mkdir ~/vimeo_triplet"
-  - "mount tmpfs ~/vimeo_triplet/ -t tmpfs -o size=200G"
-  - "cp -r /youtu_action_data/denoise/sidd/lmdb  /root/vimeo_triplet/"
-  - "cp -r /youtu_action_data/denoise/sidd/lmdb  /root/vimeo_triplet/"
+#setup:
+#  - "mkdir ~/vimeo_triplet"
+#  - "mount tmpfs ~/vimeo_triplet/ -t tmpfs -o size=200G"
+#  - "cp -r /youtu_action_data/denoise/sidd/lmdb  /root/vimeo_triplet/"
+#  - "cp -r /youtu_action_data/denoise/sidd/lmdb  /root/vimeo_triplet/"
 
 ## command 执行方式  mpi, hvd, rpf_mpi, multi_node, multi_gpu
 template: multi_node

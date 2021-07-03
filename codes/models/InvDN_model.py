@@ -57,7 +57,7 @@ class InvDN_Model(BaseModel):
                                                 weight_decay=wd_G,
                                                 betas=(train_opt['beta1'], train_opt['beta2']))
             self.optimizers.append(self.optimizer_G)
-
+            self.clip_grad = train_opt["gradient_clipping"]
             # schedulers
             if train_opt['lr_scheme'] == 'MultiStepLR':
                 for optimizer in self.optimizers:
@@ -109,6 +109,11 @@ class InvDN_Model(BaseModel):
         l_back_SSIM = self.train_opt['lambda_rec_back'] * self.Rec_back_SSIM(x, x_samples_image).mean()
         return l_back_rec + l_grad_back_rec + l_back_SSIM
 
+    def get_grad_mean(self):
+        return self.grad_mean
+
+    def set_clip_grad(self, clip_grad):
+        self.clip_grad = clip_grad
 
     def optimize_parameters(self, step):
         self.optimizer_G.zero_grad()
@@ -133,7 +138,9 @@ class InvDN_Model(BaseModel):
 
         # gradient clipping
         if self.train_opt['gradient_clipping']:
-            nn.utils.clip_grad_norm_(self.netG.parameters(), self.train_opt['gradient_clipping'])
+            # total_grad = nn.utils.clip_grad_norm_(model.parameters(), clip_grad)
+            total_grad = nn.utils.clip_grad_norm_(self.netG.parameters(), self.clip_grad)
+            self.grad_mean = self.grad_mean * step / (step + 1) + total_grad / (step + 1)
 
         self.optimizer_G.step()
 
@@ -141,6 +148,8 @@ class InvDN_Model(BaseModel):
         self.log_dict['l_forw_fit'] = l_forw_fit.item()
         self.log_dict['l_forw_ce'] = l_forw_ce
         self.log_dict['l_back_rec'] = l_back_rec.item()
+        self.log_dict['grad_mean'] = self.grad_mean
+        self.log_dict['clip_grad'] = self.clip_grad
 
     def test(self, self_ensemble=False):
         self.input = self.noisy_H

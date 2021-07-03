@@ -239,6 +239,9 @@ def main():
                     model.save(current_step)
                     model.save_training_state(epoch, current_step)
 
+        clip_grad = min(model.get_grad_mean(), opt["gradient_clipping"])
+        model.set_clip_grad(clip_grad)
+
     if rank <= 0:
         logger.info('Saving the final model.')
         model.save('latest')

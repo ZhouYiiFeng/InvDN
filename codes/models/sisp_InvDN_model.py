@@ -4,7 +4,7 @@ from collections import OrderedDict
 import torch
 import torch.nn as nn
 from torch.nn.parallel import DataParallel, DistributedDataParallel
-import models.networks as networks
+import models.sisp_networks as networks
 import models.lr_scheduler as lr_scheduler
 from .base_model import BaseModel
 from models.modules.loss import ReconstructionLoss, Gradient_Loss, SSIM_Loss
@@ -96,19 +96,24 @@ class InvDN_Model(BaseModel):
         return torch.randn(tuple(dims)).to(self.device)
 
     def loss_forward(self, out, y):
-        l_forw_fit = self.train_opt['lambda_fit_forw'] * self.Reconstruction_forw(out, y)
+        pass
+        # l_forw_fit = self.train_opt['lambda_fit_forw'] * self.Reconstruction_forw(out, y)
         # l_forw_grad = 0.1* self.train_opt['lambda_fit_forw'] * self.Rec_Forw_grad(out, y)
         # l_forw_SSIM = self.train_opt['lambda_fit_forw'] * self.Rec_forw_SSIM(out, y).mean()
 
-        return l_forw_fit # + l_forw_grad + l_forw_SSIM
+        # return l_forw_fit # + l_forw_grad + l_forw_SSIM
 
-    def loss_backward(self, x, y):
-        x_samples = self.netG(x=y, rev=True)
-        x_samples_image = x_samples[:, :3, :, :]
-        l_back_rec = self.train_opt['lambda_rec_back'] * self.Reconstruction_back(x, x_samples_image)
-        l_grad_back_rec = 0.1*self.train_opt['lambda_rec_back'] * self.Rec_back_grad(x, x_samples_image)
-        l_back_SSIM = self.train_opt['lambda_rec_back'] * self.Rec_back_SSIM(x, x_samples_image).mean()
-        return l_back_rec + l_grad_back_rec + l_back_SSIM
+    def loss_backward(self):
+        cyncl, noisy = self.netG(haarfs=self.haarfs, x= self.packs, rev=True)
+        l_forw_fit = self.train_opt['lambda_fit_forw'] * self.Reconstruction_forw(self.haarfs[:, :3, :, :], self.ref_L.detach())
+        x_samples_noisy = noisy[:, :3, :, :]
+        x_samples_cyncl = cyncl[:, :3, :, :]
+        l_back_rec = self.train_opt['lambda_rec_back'] * self.Reconstruction_back(self.real_H, x_samples_cyncl)
+        l_back_rec_n = self.train_opt['lambda_rec_back'] * self.Reconstruction_forw(self.noisy_H, x_samples_noisy)
+        l_grad_back_rec = 0.1*self.train_opt['lambda_rec_back'] * self.Rec_back_grad(self.real_H, x_samples_cyncl)
+        l_back_SSIM = self.train_opt['lambda_rec_back'] * self.Rec_back_SSIM(self.real_H, x_samples_cyncl).mean()
+        l_bckw = l_back_rec + l_back_rec_n + l_grad_back_rec + l_back_SSIM
+        return l_forw_fit, l_bckw
 
     def get_grad_mean(self):
         return self.grad_mean
@@ -123,21 +128,21 @@ class InvDN_Model(BaseModel):
         self.optimizer_G.zero_grad()
 
         # forward
-        self.output = self.netG(x=self.noisy_H)
-
-        LR_ref = self.ref_L.detach()
-
-        l_forw_ce = 0
-        l_forw_fit = self.loss_forward(self.output[:, :3, :, :], LR_ref)
+        self.outputs = self.netG(x=self.noisy_H)
+        self.haarfs, self.packs = self.outputs
+        # LR_ref = self.ref_L.detach()
 
         # backward
-        gaussian_scale = self.train_opt['gaussian_scale'] if self.train_opt['gaussian_scale'] != None else 1
-        y_ = torch.cat((self.output[:, :3, :, :], gaussian_scale * self.gaussian_batch(self.output[:, 3:, :, :].shape)), dim=1)
-
-        l_back_rec = self.loss_backward(self.real_H, y_)
+        # gaussian_scale = self.train_opt['gaussian_scale'] if self.train_opt['gaussian_scale'] != None else 1
+        # y_ = torch.cat((self.output[:, :3, :, :], gaussian_scale * self.gaussian_batch(self.output[:, 3:, :, :].shape)), dim=1)
+        # noisy, cyncl = self.netG(haarfs, packs, True, 0)
+        # l_forw_ce = 0
+        # l_forw_fit = self.loss_forward()
+        l_back_rec = self.loss_backward()
 
         # total loss
-        loss = l_forw_fit + l_back_rec + l_forw_ce
+        l_forw_fit, l_back_rec = l_back_rec
+        loss = l_back_rec + l_forw_fit
         loss.backward()
 
         # gradient clipping
@@ -150,7 +155,7 @@ class InvDN_Model(BaseModel):
 
         # set log
         self.log_dict['l_forw_fit'] = l_forw_fit.item()
-        self.log_dict['l_forw_ce'] = l_forw_ce
+        # self.log_dict['l_forw_ce'] = l_forw_ce
         self.log_dict['l_back_rec'] = l_back_rec.item()
         self.log_dict['grad_mean'] = self.grad_mean
         self.log_dict['clip_grad'] = self.clip_grad
@@ -168,10 +173,11 @@ class InvDN_Model(BaseModel):
                 forward_function = self.netG.forward
                 self.fake_H = self.forward_x8(self.input, forward_function, gaussian_scale)
             else:
-                output = self.netG(x=self.input)
-                self.forw_L = output[:, :3, :, :]
-                y_forw = torch.cat((output[:, :3, :, :], gaussian_scale * self.gaussian_batch(output[:, 3:, :, :].shape)), dim=1)
-                self.fake_H = self.netG(x=y_forw, rev=True)[:, :3, :, :]
+                self.outputs = self.netG(x=self.noisy_H)
+                self.haarfs, self.packs = self.outputs
+                self.forw_L = self.haarfs[:, :3, :, :]
+                # y_forw = torch.cat((output[:, :3, :, :], gaussian_scale * self.gaussian_batch(output[:, 3:, :, :].shape)), dim=1)
+                self.fake_H, self.rec_H_noisy = self.netG(self.haarfs, self.packs, rev=True)
 
         self.netG.train()
 
@@ -209,6 +215,7 @@ class InvDN_Model(BaseModel):
         out_dict['LR'] = self.forw_L.detach()[0].float().cpu()
         out_dict['GT'] = self.real_H.detach()[0].float().cpu()
         out_dict['Noisy'] = self.noisy_H.detach()[0].float().cpu()
+        out_dict['Re_Noisy'] = self.rec_H_noisy.detach()[0].float().cpu()
         return out_dict
 
     def print_network(self):

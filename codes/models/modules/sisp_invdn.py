@@ -161,7 +161,7 @@ class Noise_Model_Network(nn.Module):
         self.conv_4 = nn.Conv2d(filters_num, filters_num, 1, 1, 0, groups=1)
 
         self.conv_5 = nn.Conv2d(filters_num, filters_pack, 1, 1, 0, groups=1)
-        self.rlu = nn.ReLU(True)
+        self.rlu = nn.ReLU()
         self._initialize_weights()
 
     def forward(self, x):
@@ -190,15 +190,15 @@ class InvNet(nn.Module):
         self.down_num = down_num
         self.block_num = block_num
         # operations = []
-        self.blk_ops = []
+        self.blk_ops = nn.ModuleList()
         current_channel = channel_in
         self.squeezeF = SqueezeFunction()
-        self.haar_downsample = []
+        self.haar_downsample = nn.ModuleList()
         for i in range(down_num):
             b = HaarDownsampling(current_channel)
             self.haar_downsample.append(b)
             current_channel *= 4
-            operations = []
+            operations = nn.ModuleList()
             for j in range(block_num[i]):
                 b = InvSHBlock(subnet_constructor, current_channel, channel_out)
                 operations.append(b)
@@ -220,10 +220,10 @@ class InvNet(nn.Module):
                         jacobian += logdet
                     else:
                         haarfs, packs = blk_op((haarfs, packs, rev, 0))
-        else:
-            packs = x
             nleve = self.noise_pred(packs)
             haarfs[:, 3:, :, :] = haarfs[:, 3:, :, :] * nleve + haarfs[:, 3:, :, :]
+        else:
+            packs = x
             for d_idx in reversed(range(self.down_num)):
                 for blk_op in reversed(self.blk_ops[d_idx]):
                     haarfs, packs = blk_op((haarfs, packs, rev, 0))
@@ -305,8 +305,8 @@ if __name__ == '__main__':
     x = torch.rand(1, 3, 128, 128)
     # y1 = model(x)
     # print(y1.shape)
-    haarfs, packs = model(x)
-    noisy, cyncl = model(haarfs, packs, True, 0)
+    haarfs, packs = model(x=x)
+    cyncl, noisy = model(haarfs=haarfs, x=packs, rev=True, cal_jacobian= False)
     # from thop import profile
     #
     # flops, params = profile(model, inputs=(x,))

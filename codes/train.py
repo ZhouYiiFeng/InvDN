@@ -178,6 +178,7 @@ def main():
             # validation
             if current_step % opt['train']['val_freq'] == 0 and rank <= 0:
                 avg_psnr = 0.0
+                avg_l2 = 0.0
                 idx = 0
                 for val_data in tqdm(val_loader):
                     idx += 1
@@ -191,6 +192,7 @@ def main():
                     visuals = model.get_current_visuals()
                     denoised_img = util.tensor2img(visuals['Denoised'])  # uint8
                     gt_img = util.tensor2img(visuals['GT'])  # uint8
+                    rec_noisy = util.tensor2img(visuals['Re_Noisy'])  # uint8
                     # noisy_img = util.tensor2img(visuals['Noisy']) # uint8
                     #
                     # lr_img = util.tensor2img(visuals['LR'])
@@ -221,17 +223,21 @@ def main():
                     cropped_denoised_img = denoised_img[crop_size:-crop_size, crop_size:-crop_size, :]
                     cropped_gt_img = gt_img[crop_size:-crop_size, crop_size:-crop_size, :]
                     avg_psnr += util.calculate_psnr(cropped_denoised_img * 255, cropped_gt_img * 255)
+                    avg_l2 += torch.mean(torch.sum((rec_noisy - val_data)**2, (0, 1, 2, 3)))
 
                 avg_psnr = avg_psnr / idx
-
+                avg_l2 = avg_l2 / idx
                 # log
                 logger.info('# Validation # PSNR: {:.4e}.'.format(avg_psnr))
                 logger_val = logging.getLogger('val')  # validation logger
                 logger_val.info('<epoch:{:3d}, iter:{:8,d}> psnr: {:.4e}.'.format(
                     epoch, current_step, avg_psnr))
+                logger_val.info('<epoch:{:3d}, iter:{:8,d}> avg_l2: {:.4e}.'.format(
+                    epoch, current_step, avg_l2))
                 # tensorboard logger
                 if opt['use_tb_logger'] and 'debug' not in opt['name']:
                     tb_logger.add_scalar('psnr', avg_psnr, current_step)
+                    tb_logger.add_scalar('avg_l2', avg_l2, current_step)
 
             #### save models and training states
             if current_step % opt['logger']['save_checkpoint_freq'] == 0:

@@ -21,7 +21,7 @@ datasets:
 
     use_shuffle: true
     n_workers: 8  # per GPU
-    batch_size: 2
+    batch_size: 92
     GT_size: 144
     use_flip: true
     use_rot: true
@@ -48,7 +48,7 @@ network_G:
   init: xavier
 
 
-#### path
+#### pathlogger
 
 path:
   pretrain_model_G:

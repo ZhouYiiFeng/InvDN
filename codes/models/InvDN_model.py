@@ -58,6 +58,7 @@ class InvDN_Model(BaseModel):
                                                 betas=(train_opt['beta1'], train_opt['beta2']))
             self.optimizers.append(self.optimizer_G)
             self.clip_grad = train_opt["gradient_clipping"]
+            self.grad_mean = 0.0
             # schedulers
             if train_opt['lr_scheme'] == 'MultiStepLR':
                 for optimizer in self.optimizers:
@@ -111,6 +112,9 @@ class InvDN_Model(BaseModel):
 
     def get_grad_mean(self):
         return self.grad_mean
+
+    def set_grad_mean(self, grad_mean):
+        self.grad_mean = grad_mean
 
     def set_clip_grad(self, clip_grad):
         self.clip_grad = clip_grad

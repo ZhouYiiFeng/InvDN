@@ -146,6 +146,7 @@ def main():
 
     #### training
     logger.info('Start training from epoch: {:d}, iter: {:d}'.format(start_epoch, current_step))
+    model.set_grad_mean(0.0)
     for epoch in range(start_epoch, total_epochs + 1):
         if opt['dist']:
             train_sampler.set_epoch(epoch)
@@ -239,7 +240,7 @@ def main():
                     model.save(current_step)
                     model.save_training_state(epoch, current_step)
 
-        clip_grad = min(model.get_grad_mean(), opt["gradient_clipping"])
+        clip_grad = min(model.get_grad_mean(), opt["train"]["gradient_clipping"])
         model.set_clip_grad(clip_grad)
 
     if rank <= 0:

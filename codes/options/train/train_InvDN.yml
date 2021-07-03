@@ -5,7 +5,7 @@ name: InvDN_ResUnit_x4
 use_tb_logger: true
 model: InvDN
 scale: 4
-gpu_ids: [0,1]
+gpu_ids: [0]
 
 
 #### datasets
@@ -21,7 +21,7 @@ datasets:
 
     use_shuffle: true
     n_workers: 8  # per GPU
-    batch_size: 92
+    batch_size: 32
     GT_size: 144
     use_flip: true
     use_rot: true
@@ -59,7 +59,7 @@ path:
 #### training settings: learning rate scheme, loss
 
 train:
-  lr_G: !!float 1e-4
+  lr_G: !!float 15e-5
   beta1: 0.9
   beta2: 0.999
   niter: 600000

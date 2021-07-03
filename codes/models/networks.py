@@ -21,9 +21,9 @@ def define_G(opt):
 
     down_num = int(math.log(opt_net['scale'], 2))
 
-    # netG = InvNet(opt_net['in_nc'], opt_net['out_nc'], subnet(subnet_type, init), opt_net['block_num'], down_num)
-    netG = InvNet(channel_in=opt_net['in_nc'], channel_out=opt_net['out_nc'],
-                  subnet_constructor=subnet(subnet_type, init), block_num=opt_net['block_num'], down_num=down_num)
+    netG = InvNet(opt_net['in_nc'], opt_net['out_nc'], subnet(subnet_type, init), opt_net['block_num'], down_num)
+    # netG = InvNet(channel_in=opt_net['in_nc'], channel_out=opt_net['out_nc'],
+    #               subnet_constructor=subnet(subnet_type, init), block_num=opt_net['block_num'], down_num=down_num)
     return netG
 
 def define_subG(opt):

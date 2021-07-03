@@ -121,20 +121,28 @@ class HaarDownsampling(nn.Module):
 
 
 class InvSHBlock(nn.Module):
-    def __init__(self, subnet_constructor, current_channel, channel_out):
+    def __init__(self, subnet_constructor, current_channel, channel_out, cal_jacobian=False):
         super(InvSHBlock, self).__init__()
+        self.cal_jacobian=cal_jacobian
         self.subInvBlk1 = InvBlockExp(subnet_constructor, current_channel, channel_out)
-        self.subInvBlk2 = InvBlockExp(subnet_constructor, current_channel, current_channel//2)
+        self.subInvBlk2 = InvBlockExp(subnet_constructor, current_channel*2, current_channel)
 
-    def forward(self,haarfs, packs, rev=False):
+    def forward(self, inps):
+        haarfs, packs, rev, jacobian = inps
         if not rev:
             haarfs = self.subInvBlk1(haarfs, rev)
             x = torch.cat([haarfs, packs], dim=1)
             x = self.subInvBlk2(x, rev)
-            return x
+            haarfs, packs = x.chunk(2, dim=1)
+            if self.cal_jacobian:
+                jacobian += self.subInvBlk1.jacobian(haarfs, rev)
+                jacobian += self.subInvBlk2.jacobian(x, rev)
+                return haarfs, packs, jacobian
+            return haarfs, packs
         else:
-            x = self.subInvBlk2(packs, rev)
-            haarfs, packs = x.chunck(2, dim=1)
+            x = torch.cat([haarfs, packs], dim=1)
+            x = self.subInvBlk2(x, rev)
+            haarfs, packs = x.chunk(2, dim=1)
             haarfs = self.subInvBlk1(haarfs,rev)
             return haarfs, packs
 
@@ -143,22 +151,27 @@ class Noise_Model_Network(nn.Module):
         super(Noise_Model_Network, self).__init__()
 
         # Noise Model Network
-        self.network = nn.Sequential(
-            nn.Conv2d(channels, filters_num, 1, 1, 0, groups=1),
-            nn.ReLU(True),
-            nn.Conv2d(filters_num, filters_num, 1, 1, 0, groups=1),
-            nn.ReLU(True),
-            nn.Conv2d(filters_num, filters_num, 1, 1, 0, groups=1),
-            nn.ReLU(True),
-            nn.Conv2d(filters_num, filters_num, 1, 1, 0, groups=1),
-            nn.ReLU(True),
-            nn.Conv2d(filters_num, filters_pack, 1, 1, 0, groups=1),
-            nn.ReLU(True))
+
+        self.conv_1 = nn.Conv2d(channels, filters_num, 1, 1, 0, groups=1)
+
+        self.conv_2 = nn.Conv2d(filters_num, filters_num, 1, 1, 0, groups=1)
+
+        self.conv_3 = nn.Conv2d(filters_num, filters_num, 1, 1, 0, groups=1)
+
+        self.conv_4 = nn.Conv2d(filters_num, filters_num, 1, 1, 0, groups=1)
+
+        self.conv_5 = nn.Conv2d(filters_num, filters_pack, 1, 1, 0, groups=1)
+        self.rlu = nn.ReLU(True)
         self._initialize_weights()
 
-    def forward(self, X_pack):
-        Output = self.network(X_pack)
-        return Output
+    def forward(self, x):
+        x = self.rlu(self.conv_1(x))
+        x = self.rlu(self.conv_2(x))
+        x = self.rlu(self.conv_3(x))
+        x = self.rlu(self.conv_4(x))
+        x = self.rlu(self.conv_5(x))
+        return x
+
     def _initialize_weights(self):
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -189,7 +202,7 @@ class InvNet(nn.Module):
             for j in range(block_num[i]):
                 b = InvSHBlock(subnet_constructor, current_channel, channel_out)
                 operations.append(b)
-            operations = nn.Sequential(*operations)
+            # operations = nn.Sequential(*operations)
             self.blk_ops.append(operations)
         self.noise_pred = Noise_Model_Network(channels=current_channel, filters_pack=current_channel-channel_out)
 
@@ -201,18 +214,20 @@ class InvNet(nn.Module):
             for d_idx in range(self.down_num):
                 haarfs = self.haar_downsample[d_idx](haarfs, rev)
                 packs = self.squeezeF(packs, rev)
-                for blk_op in self.blk_ops:
-                    haarfs, packs, logdet = blk_op(packs, haarfs, rev)
-                    jacobian += logdet
+                for blk_op in self.blk_ops[d_idx]:
+                    if cal_jacobian:
+                        haarfs, packs, logdet = blk_op((haarfs, packs, rev, 0))
+                        jacobian += logdet
+                    else:
+                        haarfs, packs = blk_op((haarfs, packs, rev, 0))
         else:
             packs = x
             nleve = self.noise_pred(packs)
             haarfs[:, 3:, :, :] = haarfs[:, 3:, :, :] * nleve + haarfs[:, 3:, :, :]
-
-            for d_idx in range(self.down_num):
-                for blk_op in self.blk_ops:
-                    haarfs, packs, logdet = blk_op(packs, haarfs, rev)
-                haarfs = self.harr_downsample[d_idx](haarfs, rev=rev)
+            for d_idx in reversed(range(self.down_num)):
+                for blk_op in reversed(self.blk_ops[d_idx]):
+                    haarfs, packs = blk_op((haarfs, packs, rev, 0))
+                haarfs = self.haar_downsample[d_idx](haarfs, rev=rev)
                 packs = self.squeezeF(packs, rev=rev)
 
         if cal_jacobian:
@@ -290,9 +305,10 @@ if __name__ == '__main__':
     x = torch.rand(1, 3, 128, 128)
     # y1 = model(x)
     # print(y1.shape)
-
-    from thop import profile
-
-    flops, params = profile(model, inputs=(x,))
-    print(flops / (10 ** 9))
-    print(params / (10 ** 6))
+    haarfs, packs = model(x)
+    noisy, cyncl = model(haarfs, packs, True, 0)
+    # from thop import profile
+    #
+    # flops, params = profile(model, inputs=(x,))
+    # print(flops / (10 ** 9))
+    # print(params / (10 ** 6))

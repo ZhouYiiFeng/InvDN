@@ -102,8 +102,8 @@ class InvDN_Model(BaseModel):
 
         return l_forw_fit # + l_forw_grad + l_forw_SSIM
 
-    def loss_backward(self, x, y):
-        x_samples = self.netG(x=y, rev=True)
+    def loss_backward(self, x):
+        noisy, cyncl = self.netG(haarfs=self.haarfs, x= self.packs, rev=True)
         x_samples_image = x_samples[:, :3, :, :]
         l_back_rec = self.train_opt['lambda_rec_back'] * self.Reconstruction_back(x, x_samples_image)
         l_grad_back_rec = 0.1*self.train_opt['lambda_rec_back'] * self.Rec_back_grad(x, x_samples_image)
@@ -123,18 +123,18 @@ class InvDN_Model(BaseModel):
         self.optimizer_G.zero_grad()
 
         # forward
-        self.output = self.netG(x=self.noisy_H)
-
+        self.outputs = self.netG(x=self.noisy_H)
+        self.haarfs, self.packs = self.outputs
         LR_ref = self.ref_L.detach()
 
         l_forw_ce = 0
-        l_forw_fit = self.loss_forward(self.output[:, :3, :, :], LR_ref)
+        l_forw_fit = self.loss_forward(self.haarfs[:, :3, :, :], LR_ref)
 
         # backward
-        gaussian_scale = self.train_opt['gaussian_scale'] if self.train_opt['gaussian_scale'] != None else 1
-        y_ = torch.cat((self.output[:, :3, :, :], gaussian_scale * self.gaussian_batch(self.output[:, 3:, :, :].shape)), dim=1)
-
-        l_back_rec = self.loss_backward(self.real_H, y_)
+        # gaussian_scale = self.train_opt['gaussian_scale'] if self.train_opt['gaussian_scale'] != None else 1
+        # y_ = torch.cat((self.output[:, :3, :, :], gaussian_scale * self.gaussian_batch(self.output[:, 3:, :, :].shape)), dim=1)
+        # noisy, cyncl = self.netG(haarfs, packs, True, 0)
+        l_back_rec = self.loss_backward(self.real_H)
 
         # total loss
         loss = l_forw_fit + l_back_rec + l_forw_ce

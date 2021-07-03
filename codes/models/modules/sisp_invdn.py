@@ -206,7 +206,7 @@ class InvNet(nn.Module):
             self.blk_ops.append(operations)
         self.noise_pred = Noise_Model_Network(channels=current_channel, filters_pack=current_channel-channel_out)
 
-    def forward(self, x, haarfs=None ,rev=False, cal_jacobian=False, noise_trans=False):
+    def forward(self, haarfs=None, x=None, rev=False, cal_jacobian=False, noise_trans=False):
         jacobian = 0
         if not rev:
             haarfs = x

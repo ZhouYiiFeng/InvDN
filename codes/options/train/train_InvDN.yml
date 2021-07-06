@@ -66,7 +66,7 @@ train:
   warmup_iter: -1  # no warm up
 
   lr_scheme: MultiStepLR
-  lr_steps: [100000, 200000, 300000, 400000, 500000]
+  lr_steps: [50000, 100000, 150000, 200000, 300000]
   lr_gamma: 0.5
 
   pixel_criterion_forw: l2

@@ -192,7 +192,7 @@ def main():
                     visuals = model.get_current_visuals()
                     denoised_img = util.tensor2img(visuals['Denoised'])  # uint8
                     gt_img = util.tensor2img(visuals['GT'])  # uint8
-                    rec_noisy = util.tensor2img(visuals['Re_Noisy'])  # uint8
+                    # rec_noisy = util.tensor2img(visuals['Re_Noisy'])  # uint8
                     # noisy_img = util.tensor2img(visuals['Noisy']) # uint8
                     #
                     # lr_img = util.tensor2img(visuals['LR'])
@@ -223,7 +223,7 @@ def main():
                     cropped_denoised_img = denoised_img[crop_size:-crop_size, crop_size:-crop_size, :]
                     cropped_gt_img = gt_img[crop_size:-crop_size, crop_size:-crop_size, :]
                     avg_psnr += util.calculate_psnr(cropped_denoised_img * 255, cropped_gt_img * 255)
-                    avg_l2 += torch.mean(torch.sum((rec_noisy - val_data)**2, (0, 1, 2, 3)))
+                    avg_l2 += torch.mean(torch.sum((visuals['Re_Noisy'] - visuals["Noisy"])**2, (0, 1, 2)))
 
                 avg_psnr = avg_psnr / idx
                 avg_l2 = avg_l2 / idx

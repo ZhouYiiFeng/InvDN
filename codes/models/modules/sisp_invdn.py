@@ -221,7 +221,10 @@ class InvNet(nn.Module):
                     else:
                         haarfs, packs = blk_op((haarfs, packs, rev, 0))
             nleve = self.noise_pred(packs)
-            haarfs[:, 3:, :, :] = haarfs[:, 3:, :, :] * nleve + haarfs[:, 3:, :, :]
+            lq = haarfs[:, :3, :, :]
+            hq = haarfs[:, 3:, :, :]
+            chq = hq * nleve + hq
+            haarfs = torch.cat([lq, chq], dim=1)
         else:
             packs = x
             for d_idx in reversed(range(self.down_num)):
@@ -305,10 +308,13 @@ if __name__ == '__main__':
     x = torch.rand(1, 3, 128, 128)
     # y1 = model(x)
     # print(y1.shape)
-    haarfs, packs = model(x=x)
-    cyncl, noisy = model(haarfs=haarfs, x=packs, rev=True, cal_jacobian= False)
-    # from thop import profile
+    # haarfs, packs = model(x=x)
+    # cyncl, noisy = model(haarfs=haarfs, x=packs, rev=True, cal_jacobian= False)
+    from thop import profile
     #
-    # flops, params = profile(model, inputs=(x,))
-    # print(flops / (10 ** 9))
-    # print(params / (10 ** 6))
+    flops, params = profile(model, inputs=(x,x))
+    print(flops / (10 ** 9))
+    print(params / (10 ** 6))
+
+    # 13.957133312
+    # 6.667277

@@ -121,3 +121,64 @@ class InvNet(nn.Module):
             return out, jacobian
         else:
             return out
+
+def define_G(opt):
+    from models.modules.Subnet_constructor import subnet
+    opt_net = opt['network_G']
+    which_model = opt_net['which_model_G']
+    subnet_type = which_model['subnet_type']
+    if opt_net['init']:
+        init = opt_net['init']
+    else:
+        init = 'xavier'
+
+    down_num = int(math.log(opt_net['scale'], 2))
+
+    netG = InvNet(opt_net['in_nc'], opt_net['out_nc'], subnet(subnet_type, init), opt_net['block_num'], down_num)
+
+    return netG
+
+if __name__ == '__main__':
+    # m = Mosaic_Operation()
+    # x = torch.rand(1,3,128,128)
+    # y1 = m(x)
+    # print(y1.shape)
+    # y2 = m(y1, rev=True)
+    # print(y2.shape)
+    # torch.Size([1, 4, 64, 64])
+    # torch.Size([1, 1, 128, 128])
+
+    # f = Flow(12)
+    # x = torch.rand(1, 3, 128, 128)
+    # y1 = f(x)[0]
+    # print(y1.shape)
+    # y2 = f(y1, rev=True)
+    # print(y2.shape)
+    # torch.Size([1, 12, 128, 128])
+    # torch.Size([1, 12, 128, 128])
+
+    import argparse
+    import options.options as option
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-opt', type=str, help='Path to option YMAL file.')
+    parser.add_argument('--launcher', choices=['none', 'pytorch'], default='none',
+                        help='job launcher')
+    parser.add_argument('--local_rank', type=int, default=0)
+    args = parser.parse_args()
+    opt = option.parse(args.opt, is_train=True)
+
+    model = define_G(opt)
+    x = torch.rand(1, 3, 128, 128)
+    # y1 = model(x)
+    # print(y1.shape)
+    # haarfs, packs = model(x=x)
+    # cyncl, noisy = model(haarfs=haarfs, x=packs, rev=True, cal_jacobian= False)
+    from thop import profile
+    #
+    flops, params = profile(model, inputs=(x,))
+    print(flops / (10 ** 9))
+    print(params / (10 ** 6))
+
+    # 5.975457792
+    # 2.64096

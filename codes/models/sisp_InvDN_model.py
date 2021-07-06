@@ -175,9 +175,11 @@ class InvDN_Model(BaseModel):
             else:
                 self.outputs = self.netG(x=self.noisy_H)
                 self.haarfs, self.packs = self.outputs
+                # print(self.haarfs.shape)
+                # print(self.packs.shape)
                 self.forw_L = self.haarfs[:, :3, :, :]
                 # y_forw = torch.cat((output[:, :3, :, :], gaussian_scale * self.gaussian_batch(output[:, 3:, :, :].shape)), dim=1)
-                self.fake_H, self.rec_H_noisy = self.netG(self.haarfs, self.packs, rev=True)
+                self.fake_H, self.rec_H_noisy = self.netG(haarfs=self.haarfs, x=self.packs, rev=True)
 
         self.netG.train()
 
